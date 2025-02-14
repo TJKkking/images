@@ -4,12 +4,12 @@
         "context": "."
     },
     "features": {
-        "ghcr.io/devcontainers/features/common-utils:1": {
+        "ghcr.io/devcontainers/features/common-utils:2": {
             "installZsh": "true",
             "username": "vscode",
-            "uid": "1000",
-            "gid": "1000",
-            "upgradePackages": "true"
+            "upgradePackages": "true",
+			"userUid": "1000",
+			"userGid": "1000"
         },
         "ghcr.io/devcontainers/features/node:1": {
             "version": "none"
@@ -19,9 +19,6 @@
             "ppa": "false"
         }
     },
-    "overrideFeatureInstallOrder": [
-        "ghcr.io/devcontainers/features/common-utils"
-    ],
 	// Configure tool-specific properties.
 	"customizations": {
 		// Configure properties specific to VS Code.
