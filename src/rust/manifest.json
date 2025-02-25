@@ -1,31 +1,32 @@
 {
-	"version": "0.202.9",
+	"version": "1.0.20",
 	"variants": [
-		"buster",
+		"bookworm",
 		"bullseye"
 	],
 	"build": {
-		"latest": "bullseye",
+		"latest": "bookworm",
 		"rootDistro": "debian",
 		"architectures": {
-			"bullseye": [
+			"bookworm": [
 				"linux/amd64",
 				"linux/arm64"
 			],
-			"buster": [
-				"linux/amd64"
+			"bullseye": [
+				"linux/amd64",
+				"linux/arm64"
 			]
 		},
 		"tags": [
 			"rust:${VERSION}-${VARIANT}"
 		],
 		"variantTags": {
-			"buster": [
-				"rust:${VERSION}-1",
-				"rust:${VERSION}-1-buster"
-			],
 			"bullseye": [
 				"rust:${VERSION}-1-bullseye"
+			],
+			"bookworm": [
+				"rust:${VERSION}-1",
+				"rust:${VERSION}-1-bookworm"
 			]
 		}
 	},
@@ -42,7 +43,6 @@
 			"Oh My Zsh!": "/home/vscode/.oh-my-zsh"
 		},
 		"cargo": {
-			"rls": null,
 			"rustfmt": null,
 			"rust-analysis": "rustc --version",
 			"rust-src": "rustc --version",
@@ -52,6 +52,9 @@
 			"Rust": {
 				"cgIgnore": true
 			}
+		},
+		"other": {
+			"git": {}
 		}
 	}
 }

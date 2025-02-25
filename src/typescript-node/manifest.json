@@ -1,40 +1,74 @@
 {
-	"version": "0.204.8",
-	"variants": ["18-bullseye", "16-bullseye", "14-bullseye", "18-buster", "16-buster", "14-buster"],
+	"version": "1.1.8",
+	"variants": [
+		"22-bookworm",
+		"20-bookworm",
+		"18-bookworm",
+		"22-bullseye",
+		"20-bullseye",
+		"18-bullseye"
+	],
 	"build": {
-		"latest": "16-buster",
+		"latest": "22-bookworm",
 		"rootDistro": "debian",
 		"parent": "javascript-node",
 		"architectures": {
-			"18-bullseye": ["linux/amd64", "linux/arm64"],
-			"16-bullseye": ["linux/amd64", "linux/arm64"],
-			"14-bullseye": ["linux/amd64", "linux/arm64"],
-			"18-buster": ["linux/amd64"],
-			"16-buster": ["linux/amd64"],
-			"14-buster": ["linux/amd64"]
+			"22-bookworm": [
+				"linux/amd64",
+				"linux/arm64"
+			],
+			"20-bookworm": [
+				"linux/amd64",
+				"linux/arm64"
+			],
+			"18-bookworm": [
+				"linux/amd64",
+				"linux/arm64"
+			],
+			"22-bullseye": [
+				"linux/amd64",
+				"linux/arm64"
+			],
+			"20-bullseye": [
+				"linux/amd64",
+				"linux/arm64"
+			],
+			"18-bullseye": [
+				"linux/amd64",
+				"linux/arm64"
+			]
 		},
 		"tags": [
 			"typescript-node:${VERSION}-${VARIANT}"
 		],
 		"variantTags": {
-			"18-bullseye": [ 
-				"typescript-node:${VERSION}-18",
+			"22-bookworm": [
+				"typescript-node:${VERSION}-22",
+				"typescript-node:${VERSION}-bookworm"
+			],
+			"20-bookworm": [
+				"typescript-node:${VERSION}-20"
+			],
+			"18-bookworm": [
+				"typescript-node:${VERSION}-18"
+			],
+			"22-bullseye": [
 				"typescript-node:${VERSION}-bullseye"
 			],
-			"16-bullseye": [ "typescript-node:${VERSION}-16" ],
-			"14-bullseye": [ "typescript-node:${VERSION}-14" ],
-			"18-buster": [ 
-				"typescript-node:${VERSION}-buster"
+			"20-bullseye": [
+				"typescript-node:${VERSION}-bullseye"
 			]
 		}
 	},
 	"dependencies": {
 		"image": "node:${VARIANT}",
 		"imageLink": "https://hub.docker.com/_/node",
-		"debian": [{
-			"cgIgnore": false,
-			"name": "yarn"
-		}],
+		"debian": [
+			{
+				"cgIgnore": false,
+				"name": "yarn"
+			}
+		],
 		"git": {
 			"Oh My Zsh!": "/home/node/.oh-my-zsh",
 			"nvm": "/usr/local/share/nvm"
@@ -55,6 +89,9 @@
 				"path": "/usr/local/share/npm-global",
 				"downloadUrl": "https://www.typescriptlang.org/"
 			}
+		},
+		"other": {
+			"git": {}
 		}
 	}
 }

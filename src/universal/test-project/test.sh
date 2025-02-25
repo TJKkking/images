@@ -2,25 +2,28 @@
 cd $(dirname "$0")
 
 source test-utils.sh codespace
+#Changing he ownership of dotnet path to ensure oryx-install-dotnet-2.1 test doesn't fail with permission issue 
+sudo chown -R codespace:codespace /usr/share/dotnet
 
 # Run common tests
 checkCommon
 
 check "git" git --version
 
-git_version_satisfied=false
-if (echo a version 2.38.1; git --version) | sort -Vk3 | tail -1 | grep -q git; then
-    git_version_satisfied=true
-fi
+git_version=$(git --version)
+check-version-ge "git-requirement" "${git_version}" "git version 2.45.1"
 
-check "git version satisfies requirement" echo $git_version_satisfied | grep "true"
+check "set-git-config-user-name" sh -c "sudo git config --system user.name devcontainers"
+check "gitconfig-file-location" sh -c "ls /etc/gitconfig"
+check "gitconfig-contains-name" sh -c "cat /etc/gitconfig | grep 'name = devcontainers'"
+
+check "usr-local-etc-config-does-not-exist" test ! -f "/usr/local/etc/gitconfig"
 
 # Check .NET
 check "dotnet" dotnet --list-sdks
-count=$(ls /usr/local/dotnet | wc -l)
-expectedCount=3 # 2 version folders + 1 current folder which links to either one of the version
-checkVersionCount "two versions of dotnet are present" $count $expectedCount
-echo $(echo "list of installed dotnet versions" && ls -a /usr/local/dotnet)
+check "dotnet-runtimes" bash -c "dotnet --list-runtimes"
+# Runtimes are listed twice due to 'Microsoft.NETCore.App' and 'Microsoft.AspNetCore.App'
+checkVersionCount "two versions of dotnet runtimes are present" $(dotnet --list-runtimes | wc -l) 4
 
 # Check Python
 check "python" python --version
@@ -51,6 +54,7 @@ check "seaborn" python -c "import seaborn; print(seaborn.__version__)"
 check "scikit-learn" python -c "import sklearn; print(sklearn.__version__)"
 check "torch" python -c "import torch; print(torch.__version__)"
 check "requests" python -c "import requests; print(requests.__version__)"
+check "jupyterlab-git" python -c "import jupyterlab_git; print(jupyterlab_git.__version__)"
 
 # Check JupyterLab
 check "jupyter-lab" jupyter-lab --version
@@ -78,6 +82,9 @@ count=$(ls /usr/local/rvm/gems | wc -l)
 expectedCount=6 # 2 version folders + 2 global folders for each version + 1 default folder which links to either one of the version + 1 cache folder
 checkVersionCount "two versions of ruby are present" $count $expectedCount
 echo $(echo "ruby versions" && ls -a /usr/local/rvm/rubies)
+rvmExtensions="/usr/local/rvm/gems/default/extensions"
+rvmPlatform=$(rvm info default ruby | grep -w "platform" | cut -d'"' -f 2)
+checkDirectoryOwnership "codespace user has ownership over extension directory" "$rvmExtensions/$rvmPlatform" "codespace" "rvm"
 
 # Node.js
 check "node" node --version
@@ -89,6 +96,8 @@ count=$(ls /usr/local/share/nvm/versions/node | wc -l)
 expectedCount=2
 checkVersionCount "two versions of node are present" $count $expectedCount
 echo $(echo "node versions" && ls -a /usr/local/share/nvm/versions/node)
+checkBundledNpmVersion "default" "9.8.0"
+checkBundledNpmVersion "18" "9.8.1"
 
 # PHP
 check "php" php --version
@@ -123,14 +132,28 @@ check "fish" fish --version
 check "zsh" zsh --version
 
 # Check env variable
-check "RAILS_DEVELOPMENT_HOSTS is set correctly" echo $RAILS_DEVELOPMENT_HOSTS | grep ".githubpreview.dev,.app.github.dev"
-
-# Check that we can run a puppeteer node app.
-yarn
-check "run-puppeteer" node puppeteer.js
+check "RAILS_DEVELOPMENT_HOSTS is set correctly" echo $RAILS_DEVELOPMENT_HOSTS | grep ".githubpreview.dev,.preview.app.github.dev,.app.github.dev"
 
 # Check Oryx
 check "oryx" oryx --version
+
+# Ensures nvm works in a Node Project
+check "default-node-version" bash -c "node --version | grep 20."
+check "default-node-location" bash -c "which node | grep /home/codespace/nvm/current/bin"
+check "oryx-build-node-projectr" bash -c "oryx build ./sample/node"
+check "oryx-configured-current-node-version" bash -c "ls -la /home/codespace/nvm/current | grep /opt/nodejs"
+check "nvm-install-node" bash -c ". /usr/local/share/nvm/nvm.sh && nvm install 8.0.0"
+check "nvm-works-in-node-project" bash -c "node --version | grep v8.0.0"
+check "default-node-location-remained-same" bash -c "which node | grep /home/codespace/nvm/current/bin"
+
+# Ensures sdkman works in a Java Project
+check "default-java-version" bash -c "java --version"
+check "default-java-location" bash -c "which java | grep /home/codespace/java/current/bin"
+check "oryx-build-java-project" bash -c "oryx build ./sample/java"
+check "oryx-configured-current-java-version" bash -c "ls -la /home/codespace/java/current | grep /opt/java"
+check "sdk-install-java" bash -c ". /usr/local/sdkman/bin/sdkman-init.sh && sdk install java 19.0.1-oracle < /dev/null"
+check "sdkman-works-in-java-project" bash -c "java --version | grep 19.0.1"
+check "default-java-location-remained-same" bash -c "which java | grep /home/codespace/java/current/bin"
 
 # Make sure that Oryx builds Python projects correctly
 pythonVersion=$(python -V 2>&1 | grep -Po '(?<=Python )(.+)')
@@ -156,7 +179,25 @@ check "oryx-install-java-12.0.2" oryx prep --skip-detection --platforms-and-vers
 check "java-12.0.2-installed-by-oryx" ls /opt/java/ | grep 12.0.2
 check "java-version-on-path-is-12.0.2" java --version | grep 12.0.2
 
+# Test patches
+
 ls -la /home/codespace
+
+## Python - current
+checkPythonPackageVersion "python" "setuptools" "65.5.1"
+checkPythonPackageVersion "python" "requests" "2.31.0"
+checkPythonPackageVersion "python" "urllib3" "2.0.7"
+
+## Conda Python
+checkCondaPackageVersion "requests" "2.31.0"
+checkCondaPackageVersion "cryptography" "41.0.4"
+checkCondaPackageVersion "pyopenssl" "23.2.0"
+checkCondaPackageVersion "urllib3" "1.26.17"
+
+## Test Conda
+check "conda-update-conda" bash -c "conda update -y conda"
+check "conda-install-tensorflow" bash -c "conda create --name test-env -c conda-forge --yes tensorflow"
+check "conda-install-pytorch" bash -c "conda create --name test-env -c conda-forge --yes pytorch"
 
 # Report result
 reportResults

@@ -27,6 +27,23 @@ check() {
     fi
 }
 
+check-version-ge() {
+    LABEL=$1
+    CURRENT_VERSION=$2
+    REQUIRED_VERSION=$3
+    shift
+    echo -e "\n🧪 Testing $LABEL: '$CURRENT_VERSION' is >= '$REQUIRED_VERSION'"
+    local GREATER_VERSION=$((echo ${CURRENT_VERSION}; echo ${REQUIRED_VERSION}) | sort -V | tail -1)
+    if [ "${CURRENT_VERSION}" == "${GREATER_VERSION}" ]; then
+        echo "✅  Passed!"
+        return 0
+    else
+        echoStderr "❌ $LABEL check failed."
+        FAILED+=("$LABEL")
+        return 1
+    fi
+}
+
 checkMultiple() {
     PASSED=0
     LABEL="$1"
@@ -109,7 +126,7 @@ checkCommon()
         libc6 \
         libgcc1 \
         libgssapi-krb5-2 \
-        liblttng-ust0 \
+        liblttng-ust1 \
         libstdc++6 \
         zlib1g \
         locales \
@@ -145,4 +162,47 @@ fixTestProjectFolderPrivs() {
             sudo chown -R ${USERNAME} "${TEST_PROJECT_FOLDER}"
         fi
     fi
+}
+
+checkPythonPackageVersion()
+{
+    PACKAGE=$1
+    REQUIRED_VERSION=$2
+
+    current_version=$(python -c "import importlib.metadata; print(importlib.metadata.version('${PACKAGE}'))")
+    check-version-ge "${PACKAGE}-requirement" "${current_version}" "${REQUIRED_VERSION}"
+}
+
+checkCondaPackageVersion()
+{
+    PACKAGE=$1
+    REQUIRED_VERSION=$2
+    current_version=$(conda list "${PACKAGE}" | grep -E "^${PACKAGE}\s" | awk '{print $2}')
+    check-version-ge "conda-${PACKAGE}-requirement" "${current_version}" "${REQUIRED_VERSION}"
+}
+
+# Function to check if a package is installed
+checkPackageInstalled() {
+    if python -c "import $1" &>/dev/null; then
+        echo -e "\n✅ Passed! \n$1 is installed"
+    else
+        echo -e "$1 is NOT installed\n"
+        echoStderr "❌ check failed."
+    fi
+}
+
+# Function to install a package using pip
+installPackage() {
+    python3 -m pip install "$1"
+}
+
+checkPipWorkingCorrectly() {
+    # List of packages to install via pip
+    packages=("numpy" "requests" "matplotlib")
+    # Install packages and check if installation was successful
+    for package in "${packages[@]}"; do
+        echo -e "\n🧪 Testing pip install $package\n"
+        installPackage "$package"
+        checkPackageInstalled "$package"
+    done
 }

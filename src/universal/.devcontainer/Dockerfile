@@ -11,12 +11,12 @@ RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
     # Restore man command
     && yes | unminimize 2>&1 
 
+ENV LANG="C.UTF-8"
+
 # Install basic build tools
-RUN LANG="C.UTF-8" \
-    && apt-get update \
+RUN apt-get update \
     && apt-get upgrade -y \
     && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
-        git \
         make \
         unzip \
         # The tools in this package are used when installing packages for Python
@@ -54,18 +54,14 @@ RUN LANG="C.UTF-8" \
         tk-dev \
         uuid-dev \
         curl \
+        gettext \
+        inotify-tools \
     && rm -rf /var/lib/apt/lists/* \
     # This is the folder containing 'links' to benv and build script generator
     && apt-get update \
     && apt-get upgrade -y \
     && add-apt-repository universe \
-    && apt-get install -y --no-install-recommends python2 \
-    && rm -rf /var/lib/apt/lists/* \
-    # 'get-pip.py' has been moved to ' https://bootstrap.pypa.io/pip/2.7/get-pip.py' from 'https://bootstrap.pypa.io/2.7/get-pip.py'
-    && curl  https://bootstrap.pypa.io/pip/2.7/get-pip.py --output get-pip.py \
-    && python2 get-pip.py \
-    && pip install pip --upgrade \
-    && pip3 install pip --upgrade
+    && rm -rf /var/lib/apt/lists/*
 
 # Verify expected build and debug tools are present
 RUN apt-get update \
@@ -97,8 +93,6 @@ RUN apt-get clean -y && rm -rf /tmp/scripts
 # Mount for docker-in-docker 
 VOLUME [ "/var/lib/docker" ]
 
-# Fire Docker/Moby script if needed
-ENTRYPOINT [ "/usr/local/share/docker-init.sh", "/usr/local/share/ssh-init.sh"]
 CMD [ "sleep", "infinity" ]
 
 # [Optional] Install debugger for development of Codespaces - Not in resulting image by default

@@ -1,22 +1,18 @@
 {
-	"version": "0.202.16",
+	"version": "1.0.19",
 	"variants": [
-		"buster",
-		"bullseye",
-		"stretch"
+		"bookworm",
+		"bullseye"
 	],
 	"build": {
-		"latest": "bullseye",
+		"latest": "bookworm",
 		"rootDistro": "debian",
 		"architectures": {
-			"bullseye": [
+			"bookworm": [
 				"linux/amd64",
 				"linux/arm64"
 			],
-			"buster": [
-				"linux/amd64"
-			],
-			"stretch": [
+			"bullseye": [
 				"linux/amd64",
 				"linux/arm64"
 			]
@@ -25,19 +21,15 @@
 			"base:${VERSION}-${VARIANT}"
 		],
 		"variantTags": {
-			"bullseye": [
-				"base:${VERSION}-debian-11",
-				"base:${VERSION}-debian11",
+			"bookworm": [
+				"base:${VERSION}-debian-12",
+				"base:${VERSION}-debian12",
 				"base:${VERSION}-debian",
 				"base:${VERSION}"
 			],
-			"buster": [
-				"base:${VERSION}-debian-10",
-				"base:${VERSION}-debian10"
-			],
-			"stretch": [
-				"base:${VERSION}-debian-9",
-				"base:${VERSION}-debian9"
+			"bullseye": [
+				"base:${VERSION}-debian-11",
+				"base:${VERSION}-debian11"
 			]
 		}
 	},
@@ -46,6 +38,9 @@
 		"imageLink": "https://hub.docker.com/_/buildpack-deps",
 		"git": {
 			"Oh My Zsh!": "/home/vscode/.oh-my-zsh"
+		},
+		"other": {
+			"git": {}
 		}
 	}
 }

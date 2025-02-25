@@ -27,6 +27,23 @@ check() {
     fi
 }
 
+check-version-ge() {
+    LABEL=$1
+    CURRENT_VERSION=$2
+    REQUIRED_VERSION=$3
+    shift
+    echo -e "\n🧪 Testing $LABEL: '$CURRENT_VERSION' is >= '$REQUIRED_VERSION'"
+    local GREATER_VERSION=$((echo ${CURRENT_VERSION}; echo ${REQUIRED_VERSION}) | sort -V | tail -1)
+    if [ "${CURRENT_VERSION}" == "${GREATER_VERSION}" ]; then
+        echo "✅  Passed!"
+        return 0
+    else
+        echoStderr "❌ $LABEL check failed."
+        FAILED+=("$LABEL")
+        return 1
+    fi
+}
+
 checkMultiple() {
     PASSED=0
     LABEL="$1"
@@ -109,7 +126,7 @@ checkCommon()
         libc6 \
         libgcc1 \
         libgssapi-krb5-2 \
-        liblttng-ust0 \
+        liblttng-ust1 \
         libstdc++6 \
         zlib1g \
         locales \
@@ -124,6 +141,15 @@ checkCommon()
     check "oh-my-zsh" [ -d "$HOME/.oh-my-zsh" ]
     check "login-shell-path" [ -f "/etc/profile.d/00-restore-env.sh" ]
     check "code" which code
+}
+
+checkPackageVersion()
+{
+    PACKAGE=$1
+    REQUIRED_VERSION=$2
+    PACKAGE_NAME=$3
+    current_version=$("${PACKAGE}" -V | grep -E "^${PACKAGE_NAME}\s" | awk '{print $2}')
+    check-version-ge "${PACKAGE_NAME}-requirement" "${current_version}" "${REQUIRED_VERSION}"
 }
 
 reportResults() {
